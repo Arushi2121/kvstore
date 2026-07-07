@@ -13,7 +13,7 @@ CFLAGS = -std=c11 -Wall -Wextra -g -Isrc -Itests
 ASAN = -fsanitize=address -fno-omit-frame-pointer
 BUILD = build
 
-test: smoke store
+test:  smoke store heap
 	@echo ""
 	@echo "=== All test suites passed ==="
 
@@ -37,10 +37,23 @@ $(BUILD)/store.o: src/store.c src/store.h | $(BUILD)
 $(BUILD)/test_store.o: tests/test_store.c tests/test_harness.h tests/oracle.h src/store.h | $(BUILD)
 	$(CC) $(CFLAGS) $(ASAN) -c tests/test_store.c -o $@
 
+heap: $(BUILD)/test_heap
+	@echo "--- heap test (ASan ON) ---"
+	./$(BUILD)/test_heap
+
+$(BUILD)/test_heap: $(BUILD)/heap.o $(BUILD)/test_heap.o | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) $(BUILD)/heap.o $(BUILD)/test_heap.o -o $@
+
+$(BUILD)/heap.o: src/heap.c src/heap.h | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) -c src/heap.c -o $@
+
+$(BUILD)/test_heap.o: tests/test_heap.c tests/test_harness.h src/heap.h | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) -c tests/test_heap.c -o $@
+
 $(BUILD):
 	mkdir -p $(BUILD)
 
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: test smoke store clean
+.PHONY: test smoke store heap clean
