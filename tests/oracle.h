@@ -24,6 +24,7 @@
 /* strdup is not in standard C11 and using it under -std=c11 causes an implicit
  * declaration (which truncates its pointer return to int -> crash). So the
  * oracle uses its own standard-C copy helper, same as the store does. */
+ /*sometimes strdup passes as it did when i expected it to crash,that could happen because of inconsistency in the compiler support environment.*/
 static char *oracle_dup (const char *s) {
     size_t len = strlen(s) + 1;
     char *copy = malloc(len);
