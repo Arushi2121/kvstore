@@ -51,6 +51,14 @@ Decided incrementally as layers are built. Do not invent these ahead of time.
 - Module boundaries: TBD — decided in Layer 1.
 - WAL record format: TBD — decided in Layer 3.
 - Durability contract (exact crash guarantee): TBD — decided in Layer 3 / 7.
+- TTL expiry: dual mechanism. Lazy expiry in store_get guarantees an expired
+  key is never returned. Active expiry (store_expire_cycle) sweeps a min-heap
+  of expiry times to reclaim memory from expired-but-untouched keys. The store
+  entry is the source of truth; heap entries are hints and may be stale, so the
+  expire cycle re-checks the real entry before deleting. Time comes from an
+  injectable clock (real in prod, mock in tests) for deterministic testing.
+- Hash collisions: separate chaining (linked list per bucket). Resize doubles
+  buckets at load factor 0.75 and rehashes all entries.
 
 ## How to direct Cursor in this project
 

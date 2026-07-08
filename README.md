@@ -28,6 +28,19 @@ Correctness is proven, not assumed:
 - **AddressSanitizer** — the full test suite runs clean under ASan on every
   commit.
 
+## Design decisions
+
+Key architectural choices, with full reasoning and tradeoffs recorded in
+[DECISIONS.md](./DECISIONS.md):
+
+- **Separate chaining** for hash collisions — chosen for clean deletion and
+  defensibility over open addressing's performance.
+- **Dual TTL expiry** (lazy + active via a min-heap) — correctness on read,
+  memory reclamation on sweep, with the store as source of truth and heap
+  entries as best-effort hints.
+- **Injectable clock** (dependency injection) — makes all time-dependent
+  expiry logic deterministically testable without real delays.
+
 ## Build & run
 make test        # build with AddressSanitizer and run all tests
 make clean        # remove build artifacts
