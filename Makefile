@@ -1,13 +1,3 @@
-# Makefile — the build recipe book for kvstore.
-#
-# Targets:
-#   make test       -> build & run ALL test binaries (smoke + store)
-#   make smoke      -> build & run just the smoke test
-#   make store      -> build & run just the store test
-#   make clean      -> delete build output
-#
-# NOTE: command lines under each target MUST start with a real TAB, not spaces.
-
 CC ?= clang
 CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -Isrc -Itests
 ASAN = -fsanitize=address -fno-omit-frame-pointer
@@ -28,13 +18,13 @@ store: $(BUILD)/test_store
 	@echo "--- store test (ASan ON) ---"
 	./$(BUILD)/test_store
 
-$(BUILD)/test_store: $(BUILD)/store.o $(BUILD)/test_store.o | $(BUILD)
-	$(CC) $(CFLAGS) $(ASAN) $(BUILD)/store.o $(BUILD)/test_store.o -o $@
+$(BUILD)/test_store: $(BUILD)/store.o $(BUILD)/heap.o $(BUILD)/clock.o $(BUILD)/test_store.o | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) $(BUILD)/store.o $(BUILD)/heap.o $(BUILD)/clock.o $(BUILD)/test_store.o -o $@
 
 $(BUILD)/store.o: src/store.c src/store.h | $(BUILD)
 	$(CC) $(CFLAGS) $(ASAN) -c src/store.c -o $@
 
-$(BUILD)/test_store.o: tests/test_store.c tests/test_harness.h tests/oracle.h src/store.h | $(BUILD)
+$(BUILD)/test_store.o: tests/test_store.c tests/test_harness.h tests/oracle.h src/store.h src/clock.h | $(BUILD)
 	$(CC) $(CFLAGS) $(ASAN) -c tests/test_store.c -o $@
 
 heap: $(BUILD)/test_heap
