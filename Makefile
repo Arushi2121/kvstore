@@ -9,11 +9,11 @@
 # NOTE: command lines under each target MUST start with a real TAB, not spaces.
 
 CC ?= clang
-CFLAGS = -std=c11 -Wall -Wextra -g -Isrc -Itests
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -Isrc -Itests
 ASAN = -fsanitize=address -fno-omit-frame-pointer
 BUILD = build
 
-test:  smoke store heap
+test: smoke store heap clock
 	@echo ""
 	@echo "=== All test suites passed ==="
 
@@ -50,10 +50,23 @@ $(BUILD)/heap.o: src/heap.c src/heap.h | $(BUILD)
 $(BUILD)/test_heap.o: tests/test_heap.c tests/test_harness.h src/heap.h | $(BUILD)
 	$(CC) $(CFLAGS) $(ASAN) -c tests/test_heap.c -o $@
 
+clock: $(BUILD)/test_clock
+	@echo "--- clock test (ASan ON) ---"
+	./$(BUILD)/test_clock
+
+$(BUILD)/test_clock: $(BUILD)/clock.o $(BUILD)/test_clock.o | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) $(BUILD)/clock.o $(BUILD)/test_clock.o -o $@
+
+$(BUILD)/clock.o: src/clock.c src/clock.h | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) -c src/clock.c -o $@
+
+$(BUILD)/test_clock.o: tests/test_clock.c tests/test_harness.h src/clock.h | $(BUILD)
+	$(CC) $(CFLAGS) $(ASAN) -c tests/test_clock.c -o $@
+
 $(BUILD):
 	mkdir -p $(BUILD)
 
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: test smoke store heap clean
+.PHONY: test smoke store heap clock clean
